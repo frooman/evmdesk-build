@@ -14,6 +14,10 @@ import 'platform_model.dart';
 
 bool refreshingUser = false;
 
+/// SCTG: сервер сообщил `disable-pwd` в /api/login-options — форма логин/пароль скрывается,
+/// вход только через OAuth (Яндекс ID).
+final RxBool pwdLoginDisabled = false.obs;
+
 class UserModel {
   final RxString userName = ''.obs;
   final RxString displayName = ''.obs;
@@ -228,6 +232,8 @@ class UserModel {
       for (final item in jsonDecode(resp.body)) {
         ops.add(item as String);
       }
+      // SCTG: сервер отключает парольный вход — клиент прячет форму логин/пароль
+      pwdLoginDisabled.value = ops.contains('disable-pwd');
       for (final item in ops) {
         if (item.startsWith('common-oidc/')) {
           return jsonDecode(item.substring('common-oidc/'.length));
