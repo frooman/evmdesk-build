@@ -84,7 +84,21 @@ fn install_android_deps() {
 fn sctg_fix_version() {
     let p = "./src/version.rs";
     if let Ok(c) = std::fs::read_to_string(p) {
-        let c2 = c.replacen("+ev10\"", ".10\"", 1);
+        // SCTG: "+evNN" -> ".NN" — WiX требует числовой ProductVersion X.Y.Z[.W]
+        // (иначе ICE24/ICE70: '1.5.0+ev11' invalid). Замена универсальная,
+        // чтобы работать для ev2/ev10/ev11 и дальше, а не только для ev10.
+        let c2 = match c.find("+ev") {
+            Some(pos) => {
+                let rest = &c[pos + 3..];
+                let digits: String = rest.chars().take_while(|ch| ch.is_ascii_digit()).collect();
+                if digits.is_empty() {
+                    c.clone()
+                } else {
+                    format!("{}.{}{}", &c[..pos], digits, &rest[digits.len()..])
+                }
+            }
+            None => c.clone(),
+        };
         if c2 != c {
             let _ = std::fs::write(p, c2);
         }
