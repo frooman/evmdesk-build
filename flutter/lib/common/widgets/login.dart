@@ -659,16 +659,21 @@ Future<bool?> loginDialog() async {
           const SizedBox(
             height: 8.0,
           ),
-          LoginWidgetUserPass(
-            username: username,
-            pass: password,
-            usernameMsg: usernameMsg,
-            passMsg: passwordMsg,
-            isInProgress: isInProgress,
-            curOP: curOP,
-            onLogin: onLogin,
-            userFocusNode: userFocusNode,
-          ),
+          // SCTG: если сервер отключил парольный вход (disable-pwd), форма логин/пароль
+          // скрыта — операторы входят только через Яндекс ID.
+          Obx(() => Offstage(
+                offstage: pwdLoginDisabled.value,
+                child: LoginWidgetUserPass(
+                  username: username,
+                  pass: password,
+                  usernameMsg: usernameMsg,
+                  passMsg: passwordMsg,
+                  isInProgress: isInProgress,
+                  curOP: curOP,
+                  onLogin: onLogin,
+                  userFocusNode: userFocusNode,
+                ),
+              )),
           thirdAuthWidget(),
         ],
       ),
