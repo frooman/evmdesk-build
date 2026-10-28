@@ -1405,6 +1405,13 @@ impl<T: InvokeUiSession> Session<T> {
     }
 
     pub fn close(&self) {
+        // SCTG: закрыть запись журнала со стороны оператора — close от цели/hbbr приходит не всегда,
+        // из-за чего сессия могла сутками висеть в «Активных».
+        let (peer_id, session_id) = {
+            let lc = self.lc.read().unwrap();
+            (lc.get_id().to_owned(), lc.session_id)
+        };
+        crate::sctg_audit::post_close(&peer_id, session_id);
         self.send(Data::Close);
     }
 

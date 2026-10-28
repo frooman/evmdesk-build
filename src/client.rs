@@ -207,6 +207,9 @@ impl Client {
         (i32, String),
     )> {
         debug_assert!(peer == interface.get_id());
+        // SCTG: сообщить серверу, кто инициирует подключение — в журнале оператор виден сразу,
+        // не дожидаясь подтверждения второй стороны (hbbs знает только ID цели).
+        crate::sctg_audit::post_new(peer);
         interface.update_direct(None);
         interface.update_received(false);
         match Self::_start(peer, key, token, conn_type, interface.clone()).await {
