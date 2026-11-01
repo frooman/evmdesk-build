@@ -1952,6 +1952,11 @@ impl<T: InvokeUiSession> Session<T> {
 
 #[tokio::main(flavor = "current_thread")]
 pub async fn io_loop<T: InvokeUiSession>(handler: Session<T>, round: u32) {
+    log::info!(
+        "SCTG io_loop start: args={:?} is_port_forward={}",
+        handler.args,
+        handler.is_port_forward()
+    );
     #[cfg(any(target_os = "android", target_os = "ios"))]
     let (sender, receiver) = mpsc::unbounded_channel::<Data>();
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1977,9 +1982,52 @@ pub async fn io_loop<T: InvokeUiSession>(handler: Session<T>, round: u32) {
             log::info!("Remote rdp port: {}", port);
             start_one_port_forward(handler, 0, "".to_owned(), port, receiver, &key, &token).await;
         } else if handler.args.len() == 0 {
-            let pfs = handler.lc.read().unwrap().port_forwards.clone();
+            let (peer_id, mut pfs) = {
+                let lc = handler.lc.read().unwrap();
+                (lc.get_id().to_owned(), lc.port_forwards.clone())
+            };
+            if pfs.is_empty() {
+                // SCTG: lc может быть ещё не наполнен на момент старта io_loop —
+                // берём правила напрямую из peer-конфига (<config>/peers/<id>.toml).
+                pfs = hbb_common::config::PeerConfig::load(&peer_id).port_forwards;
+                log::info!(
+                    "SCTG port-forward: lc пуст, из peer-конфига {} правил ({})",
+                    pfs.len(),
+                    peer_id
+                );
+            }
             let mut queues = HashMap::<i32, mpsc::UnboundedSender<Data>>::new();
             for d in pfs {
+                // SCTG: авто-подъём PF из peer-конфига. Во Flutter-клиенте экран
+                // Port Forward открывает пустую форму и не подставляет правила из
+                // peers/<id>.toml, поэтому listener запускаем сразу, не дожидаясь
+                // нажатия «Добавить» (как это работало в 1.4.8).
+                let (port, remote_host, remote_port) = d.clone();
+                if port > 0 && remote_port > 0 {
+                    log::info!(
+                        "SCTG auto port-forward {} -> {}:{}",
+                        port,
+                        remote_host,
+                        remote_port
+                    );
+                    let (pf_sender, pf_receiver) = mpsc::unbounded_channel::<Data>();
+                    queues.insert(port, pf_sender);
+                    let handler = handler.clone();
+                    let key = key.clone();
+                    let token = token.clone();
+                    tokio::spawn(async move {
+                        start_one_port_forward(
+                            handler,
+                            port,
+                            remote_host,
+                            remote_port,
+                            pf_receiver,
+                            &key,
+                            &token,
+                        )
+                        .await;
+                    });
+                }
                 sender.send(Data::AddPortForward(d)).ok();
             }
             loop {

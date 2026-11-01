@@ -1408,6 +1408,13 @@ pub fn session_start_(
 
     if let Some(session) = sessions::get_session_by_session_id(session_id) {
         let is_first_ui_session = session.session_handlers.read().unwrap().len() == 1;
+        log::info!(
+            "SCTG session_start_: id={} session_id={} is_connected={} is_first_ui_session={}",
+            id,
+            session_id.to_string(),
+            is_connected,
+            is_first_ui_session
+        );
         if !is_connected && is_first_ui_session {
             log::info!(
                 "Session {} start, use texture render: {}",
