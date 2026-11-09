@@ -3,6 +3,7 @@ import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_setting_page.dart';
+import 'package:flutter_hbb/desktop/pages/support_page.dart';
 import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/state_model.dart';
@@ -35,6 +36,19 @@ class DesktopTabPage extends StatefulWidget {
             key: const ValueKey(kTabLabelSettingPage),
             initialTabkey: initialPage,
           )));
+    } catch (e) {
+      debugPrintStack(label: '$e');
+    }
+  }
+  static void onAddSupport() {
+    try {
+      DesktopTabController tabController = Get.find<DesktopTabController>();
+      tabController.add(TabInfo(
+          key: kTabLabelSupportPage,
+          label: kTabLabelSupportPage,
+          selectedIcon: Icons.support_agent,
+          unselectedIcon: Icons.support_agent,
+          page: const SupportPage(key: ValueKey(kTabLabelSupportPage))));
     } catch (e) {
       debugPrintStack(label: '$e');
     }

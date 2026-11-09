@@ -220,6 +220,8 @@ const String kUrlActionClose = "close";
 
 const String kTabLabelHomePage = "Home";
 const String kTabLabelSettingPage = "Settings";
+// SCTG: раздел «Поддержка» (service desk, ветка sctg-servicedesk)
+const String kTabLabelSupportPage = "Поддержка";
 
 const String kWindowPrefix = "wm_";
 const int kWindowMainId = 0;

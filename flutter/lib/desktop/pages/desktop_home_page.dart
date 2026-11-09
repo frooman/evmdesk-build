@@ -93,6 +93,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       buildTip(context),
       if (!isOutgoingOnly) buildIDBoard(context),
       if (!isOutgoingOnly) buildPasswordBoard(context),
+      buildSupportEntry(context),
       FutureBuilder<Widget>(
         future: Future.value(
             Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
@@ -428,6 +429,21 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               style: Theme.of(context).textTheme.bodySmall,
             ),
         ],
+      ),
+    );
+  }
+
+  // SCTG: вход в раздел «Поддержка» (service desk, ветка sctg-servicedesk).
+  Widget buildSupportEntry(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          icon: const Icon(Icons.support_agent, size: 18),
+          label: const Text('Поддержка'),
+          onPressed: () => DesktopTabPage.onAddSupport(),
+        ),
       ),
     );
   }
