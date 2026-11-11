@@ -98,7 +98,7 @@ fn start_heartbeat(target_id: &str) {
             if stop.load(Ordering::Relaxed) {
                 break;
             }
-            post("", &target, 0);
+            post("update", &target, 0);
         }
         // поток завершается — убираем себя из реестра (если запись всё ещё наша)
         if let Ok(mut map) = HEARTBEATS.lock() {
